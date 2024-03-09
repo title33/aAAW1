@@ -6,7 +6,7 @@ local requestfunc = http and http.request or http_request or fluxus and fluxus.r
 local InventoryCounts = {}
 local BackpackCounts = {}
 
-local wiejz9 = math.random(0, 0xFFFFFF)
+local wiejz9 = tonumber(0xFF0000)
 
 local function sendNotification(itemName, parentFrame)
     local count = 0
