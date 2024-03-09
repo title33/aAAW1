@@ -1,16 +1,15 @@
 local HttpService = game:GetService("HttpService")
 
-local Webhook_URL = "https://discord.com/api/webhooks/1214555116015718400/T0_T_4Ted8lZYkeFTUhG7G6Lb3Z5SYINe_iXCzFN4E7QpzkFfTuADOPsoSxKwX074JcG"
+local Webhook_URL = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token"
 local Name = game.Players.LocalPlayer.Name
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-local requestfunc = http and http.request or http_request or fluxus and fluxus.request or request
 
 local InventoryCounts = {}
 local BackpackCounts = {}
 
 local function sendNotification(itemName, parentFrame, count)
     local wiejz9 = math.random(0, 0xFFFFFF)
-    local req = requestfunc({
+    local req = http_request({
         Url = Webhook_URL,
         Method = 'POST',
         Headers = {
@@ -47,21 +46,7 @@ local function onChildAdded(item, parentFrame)
     end
 end
 
-game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame.ChildAdded:Connect(function(item)
-    onChildAdded(item, "WeaponFrame")
-end)
-
-game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame.ChildAdded:Connect(function(item)
-    onChildAdded(item, "ItemsFrame")
-end)
-
-game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
-    onChildAdded(item, "Backpack")
-end)
-
-while true do
-    wait()
-
+local function countInventoryItems()
     -- Reset counts
     for key, _ in pairs(InventoryCounts) do
         InventoryCounts[key] = 0
@@ -79,11 +64,21 @@ while true do
             InventoryCounts[item.Name] = (InventoryCounts[item.Name] or 0) + 1
         end
     end
+end
 
+local function countBackpackItems()
     -- Count items in the backpack
     for _, item in ipairs(game.Players.LocalPlayer.Character:GetChildren()) do
         if item:IsA("Frame") then
             BackpackCounts[item.Name] = (BackpackCounts[item.Name] or 0) + 1
         end
     end
+end
+
+-- Main loop
+while true do
+    wait()
+
+    countInventoryItems()
+    countBackpackItems()
 end
