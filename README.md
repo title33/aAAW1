@@ -1,73 +1,57 @@
+HttpService = game:GetService("HttpService")
 
+-- เก็บ URL Webhook ไว้ที่ปลอดภัย (นอกสคริปต์)
+Webhook_URL = "https://discord.com/api/webhooks/1214555116015718400/T0_T_4Ted8lZYkeFTUhG7G6Lb3Z5SYINe_iXCzFN4E7QpzkFfTuADOPsoSxKwX074JcG"
 
+local function sendNotification(itemName)
+  local req = HttpService:JSONEncode({
+    ["content"] = "",
+    ["embeds"] = {{
+      ["title"] = "ไอเท็มใหม่ในคลัง",
+      ["description"] = "ชื่อที่แสดง: "..game.Players.LocalPlayer.DisplayName.."\nชื่อผู้ใช้: " .. game.Players.LocalPlayer.Name.."\nไอเท็มที่ได้รับ: "..itemName
+    }}
+  })
 
+  -- ส่งการแจ้งเตือนเฉพาะไอเท็มใหม่ (ใช้ธงเพื่อติดตามไอเท็มที่ส่งแล้ว)
+  -- HttpService:RequestAsync({
+  --   Url = Webhook_URL,
+  --   Method = 'POST',
+  --   Headers = {
+  --     ['Content-Type'] = 'application/json'
+  --   },
+  --   Body = req
+  -- })
+end
 
-local HttpService = game:GetService("HttpService")
-local Webhook_URL = "https://discord.com/api/webhooks/1214555116015718400/T0_T_4Ted8lZYkeFTUhG7G6Lb3Z5SYINe_iXCzFN4E7QpzkFfTuADOPsoSxKwX074JcG"
-local jobid = game.JobId
-local Userid = game.Players.LocalPlayer.UserId
-local DName = game.Players.LocalPlayer.DisplayName
-local Name = game.Players.LocalPlayer.Name
-local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-local requestfunc = http and http.request or http_request or fluxus and fluxus.request or request
+local function trackItems(parent)
+  local seenItems = {}  -- เก็บไอเท็มที่เคยเห็นเพื่อป้องกันการแจ้งเตือนซ้ำ
 
-local Names = {
-    ["WeaponFrame"] = {},
-    ["ItemsFrame"] = {},
-    ["Backpack"] = {},
-}
+  parent.ChildAdded:Connect(function(item)
+    if item:IsA("Frame") or item:IsA("Tool") then
+      local itemName = item.Name
 
-local function onChildAdded(item, parentFrame)
-    if item:IsA("Frame") then
-        local itemName = item.Name
-        if not Names[parentFrame][itemName] then
-            Names[parentFrame][itemName] = true
-            sendNotification(itemName, parentFrame)
-        end
+      -- ตรวจสอบว่าไอเท็มใหม่หรือไม่
+      if not seenItems[itemName] then
+        sendNotification(itemName)
+        seenItems[itemName] = true
+      end
     end
+  end)
+
+  return seenItems
 end
 
-local function sendNotification(itemName, parentFrame)
-    local req = requestfunc({
-        Url = Webhook_URL,
-        Method = 'POST',
-        Headers = {
-            ['Content-Type'] = 'application/json'
-        },
-        Body = HttpService:JSONEncode({
-            ["content"] = "",
-            ["embeds"] = {{
-                ["title"] = "คุณได้ไอเทม" .. parentFrame,
-                ["description"] = "Display Name: " .. DName .. " \nUsername: " .. Name .. " \nUser Id: " .. Userid .. "\nGame: " .. GameName .. "\nJob Id: " .. jobid .. "\nItem Added: " .. itemName
-            }}
-        })
-    })
-end
+-- ตรวจสอบไอเท็มในเฟรมคลังและเครื่องมือ
+local weaponSeenItems = trackItems(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame)
+local itemsSeenItems = trackItems(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame)
+local backpackSeenItems = trackItems(game.Players.LocalPlayer.Backpack)
 
-game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame.ChildAdded:Connect(function(item)
-    onChildAdded(item, "WeaponFrame")
-end)
+-- เพิ่มการตรวจสอบเฟรม/อุปกรณ์เพิ่มเติมหากจำเป็น
 
-game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame.ChildAdded:Connect(function(item)
-    onChildAdded(item, "ItemsFrame")
-end)
-
-game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
-    onChildAdded(item, "Backpack")
-end)
-
+-- ตรวจสอบไอเท็มใหม่ทุกวินาที
 while true do
-    wait()
-
-    for _, item in ipairs(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame:GetChildren()) do
-        onChildAdded(item, "WeaponFrame")
-    end
-
-    for _, item in ipairs(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame:GetChildren()) do
-        onChildAdded(item, "ItemsFrame")
-    end
-
-    for _, item in ipairs(game.Players.LocalPlayer.Character:GetChildren()) do
-        onChildAdded(item, "Backpack")
-    end
+  wait()
+  weaponSeenItems = trackItems(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame, weaponSeenItems)
+  itemsSeenItems = trackItems(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame, itemsSeenItems)
+  backpackSeenItems = trackItems(game.Players.LocalPlayer.Backpack, backpackSeenItems)
 end
