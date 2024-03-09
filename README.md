@@ -5,7 +5,7 @@ local Userid = game.Players.LocalPlayer.UserId
 local DName = game.Players.LocalPlayer.DisplayName
 local Name = game.Players.LocalPlayer.Name
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-local requestfunc = http and http.request or http_request or fluxus and fluxus.request or request
+local requestfunc = http_request or syn.request -- Update this line with the correct HTTP request function
 
 local Names = {
     ["WeaponFrame"] = {},
@@ -43,6 +43,7 @@ local function sendNotification(itemName, parentFrame)
         })
     })
 end
+
 game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame.ChildAdded:Connect(function(item)
     onChildAdded(item, "WeaponFrame")
 end)
@@ -54,19 +55,3 @@ end)
 game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
     onChildAdded(item, "Backpack")
 end)
-
-while true do
-    wait()
-
-    for _, item in ipairs(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame:GetChildren()) do
-        onChildAdded(item, "WeaponFrame")
-    end
-
-    for _, item in ipairs(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame:GetChildren()) do
-        onChildAdded(item, "ItemsFrame")
-    end
-
-    for _, item in ipairs(game.Players.LocalPlayer.Character:GetChildren()) do
-        onChildAdded(item, "Backpack")
-    end
-end
