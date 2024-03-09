@@ -24,21 +24,20 @@ function onChildAdded(item, parentFrame)
 end
 
 function sendNotification(itemName, parentFrame)
-    local req = requestfunc({
-        Url = Webhook_URL,
-        Method = 'POST',
-        Headers = {
-            ['Content-Type'] = 'application/json'
-        },
-        Body = HttpService:JSONEncode({
-            ["content"] = "",
-            ["embeds"] = {{
-                ["title"] = "มีอะไรเข้ามาใน" .. parentFrame,
-                ["description"] = "Display Name: "..DName.." \nUsername: " .. Name.." \nUser Id: "..Userid.."\nGame: "..GameName.."\nJob Id: "..jobid.."\nItem Added: "..itemName,
-                ["color"] = 0xFF0000,  -- ปรับสีเป็นแดง
-            }}
-        })
+local req = requestfunc({
+    Url = Webhook_URL,
+    Method = 'POST',
+    Headers = {
+        ['Content-Type'] = 'application/json'
+    },
+    Body = HttpService:JSONEncode({
+        ["content"] = "",
+        ["embeds"] = {{
+            ["title"] = "มีอะไรเข้ามาใน" .. parentFrame,
+            ["description"] = "Display Name: "..DName.." \nUsername: " .. Name.." \nUser Id: "..Userid.."\nGame: "..GameName.."\nJob Id: "..jobid.."\nItem Added: "..itemName
+        }}
     })
+})
 end
 
 game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.WeaponFrame.ChildAdded:Connect(function(item)
