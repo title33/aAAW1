@@ -1,26 +1,15 @@
 local HttpService = game:GetService("HttpService")
+
 local Webhook_URL = "https://discord.com/api/webhooks/1214555116015718400/T0_T_4Ted8lZYkeFTUhG7G6Lb3Z5SYINe_iXCzFN4E7QpzkFfTuADOPsoSxKwX074JcG"
 local Name = game.Players.LocalPlayer.Name
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 local requestfunc = http and http.request or http_request or fluxus and fluxus.request or request
+
 local InventoryCounts = {}
 local BackpackCounts = {}
 
-local wiejz9 = math.random(0, 0xFFFFFF)
-
-local function sendNotification(itemName, parentFrame)
-    local count = 0
-    if parentFrame == "WeaponFrame" then
-        count = InventoryCounts[itemName] or 0
-        InventoryCounts[itemName] = count + 1
-    elseif parentFrame == "ItemsFrame" then
-        count = InventoryCounts[itemName] or 0
-        InventoryCounts[itemName] = count + 1
-    elseif parentFrame == "Backpack" then
-        count = BackpackCounts[itemName] or 0
-        BackpackCounts[itemName] = count + 1
-    end
-
+local function sendNotification(itemName, parentFrame, count)
+    local wiejz9 = math.random(0, 0xFFFFFF)
     local req = requestfunc({
         Url = Webhook_URL,
         Method = 'POST',
@@ -30,7 +19,7 @@ local function sendNotification(itemName, parentFrame)
         Body = HttpService:JSONEncode({
             ["content"] = "",
             ["embeds"] = {{
-                ["title"] = "คุณได้ไอเทม",
+                ["title"] = "You obtained an item",
                 ["color"] = tonumber(wiejz9),
                 ["description"] = "Username: " .. Name .. "\nGame: " .. GameName .. "\nItem Obtained: " .. itemName .. "\nCount: " .. count,
                 ["footer"] = {
@@ -44,7 +33,17 @@ end
 local function onChildAdded(item, parentFrame)
     if item:IsA("Frame") then
         local itemName = item.Name
-        sendNotification(itemName, parentFrame)
+        local count = 0
+
+        if parentFrame == "WeaponFrame" or parentFrame == "ItemsFrame" then
+            count = InventoryCounts[itemName] or 0
+            InventoryCounts[itemName] = count + 1
+        elseif parentFrame == "Backpack" then
+            count = BackpackCounts[itemName] or 0
+            BackpackCounts[itemName] = count + 1
+        end
+
+        sendNotification(itemName, parentFrame, count)
     end
 end
 
@@ -74,6 +73,7 @@ while true do
             InventoryCounts[item.Name] = (InventoryCounts[item.Name] or 0) + 1
         end
     end
+
     for _, item in ipairs(game.Players.LocalPlayer.PlayerGui.MainUI.Interface.Inventory.ItemsFrame:GetChildren()) do
         if item:IsA("Frame") then
             InventoryCounts[item.Name] = (InventoryCounts[item.Name] or 0) + 1
