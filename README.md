@@ -8,22 +8,24 @@ local hwid = game:GetService("RbxAnalyticsService"):GetClientId()
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 local requestfunc = syn and syn.request or request or http_request or http.request or fluxus and fluxus.request or game:HttpGet
 
-local function sendNotification(itemName)
-  local req = requestfunc({
-    Url = Webhook_URL,
-    Method = 'POST',
-    Headers = {
-      ['Content-Type'] = 'application/json'
-    },
-    Body = HttpService:JSONEncode({
-      ["content"] = "",
-      ["embeds"] = {{
-        ["title"] = "มีไอเท็มใหม่",
-        ["color"] = tonumber(0xFF0000),
-        ["description"] = "ชื่อ: " .. itemName
-      }}
+local function sendNotification(itemType, itemName)
+  if itemType and itemName then
+    local req = requestfunc({
+      Url = Webhook_URL,
+      Method = 'POST',
+      Headers = {
+        ['Content-Type'] = 'application/json'
+      },
+      Body = HttpService:JSONEncode({
+        ["content"] = "",
+        ["embeds"] = {{
+          ["title"] = "มีไอเท็มใหม่",
+          ["color"] = tonumber(0xFF0000),
+          ["description"] = "ประเภท: " .. itemType .. "\nชื่อ: " .. itemName
+        }}
+      })
     })
-  })
+  end
 end
 
 local backpack = game.Players.LocalPlayer.Backpack
@@ -31,14 +33,17 @@ local itemsFrame = game:GetService("Players").LocalPlayer.PlayerGui.MainUI.Inter
 
 backpack.ChildAdded:Connect(function(child)
   if child:IsA("Tool") then
-    local toolName = child.Name
-    sendNotification(toolName)
+    local itemType = "backpack"
+    local itemName = child.Name
+    sendNotification(itemType, itemName)
   end
 end)
 
 itemsFrame.ChildAdded:Connect(function(child)
   if child:IsA("Frame") then
-    local frameName = child.Name
-    sendNotification(frameName)
+    local itemType = "Items"
+    local itemName = child.Name
+    sendNotification(itemType, itemName)
   end
 end)
+
